@@ -4,6 +4,7 @@ import json
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import pytz  # Import pytz for time zone handling
+from PIL import Image 
 
 # Read API key from the environment
 API_KEY = os.getenv("TIBBER_API_KEY")
@@ -89,7 +90,7 @@ plt.grid(axis="x", linestyle="--", alpha=0.7, color="black")
 plt.legend(loc="upper left", frameon=False)
 
 # Add current date
-current_date = current_time.strftime("%Y-%m-%d")
+current_date = current_time.strftime("%Y-%m-%d %H:%M:%S")
 plt.text(0.95, 0.01, f"Generated on: {current_date}", 
          transform=plt.gca().transAxes, fontsize=10, color='gray',
          ha='right', va='bottom')
@@ -97,6 +98,15 @@ plt.text(0.95, 0.01, f"Generated on: {current_date}",
 plt.tight_layout()
 
 # Save to PNG
-plt.savefig("image.png", dpi=150, bbox_inches="tight")
-print("Chart saved as image.png")
+plt.savefig("image_original.png", dpi=150, bbox_inches="tight")
+print("Chart saved as image_original.png")
+
+with Image.open("image_original.png").convert("L") as img:
+    img = img.resize((800, 600))
+
+    img_rotated = img.rotate(90, expand=True)  # Rotate 90 degrees
+
+    rotated_output_path = "/app/image.png"
+    img_rotated.save(rotated_output_path)
+    print(f"Rotated and 8-bit grayscale image saved as {rotated_output_path}")
 
