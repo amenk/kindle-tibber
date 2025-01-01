@@ -1,5 +1,6 @@
+
 services:
-  app:
+  tibber-image-generator:
     build: .
     environment:
       - TIBBER_API_KEY=${TIBBER_API_KEY}
