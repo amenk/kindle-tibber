@@ -45,6 +45,13 @@ query {
           }
         }
       }
+      consumption(resolution: HOURLY, last: 100) {
+	nodes {
+	  from
+	  cost
+	  consumption
+	}
+      }      
     }
   }
 }
@@ -71,12 +78,18 @@ def fetch_data():
 
     current_price = data["data"]["viewer"]["homes"][0]["currentSubscription"]["priceInfo"]["current"]["total"]
     
-    return times_extended, values_extended, current_time, current_price
+    consumption_nodes = data["data"]["viewer"]["homes"][0]["consumption"]["nodes"]
+
+    consumption_times = [entry["from"] for entry in consumption_nodes]
+    consumption_values = [entry["consumption"] for entry in consumption_nodes]
+    
+    
+    return times_extended, values_extended, current_time, current_price, consumption_times, consumption_values
 
 # Route to serve the image
 @app.route('/image.png')
 def serve_image():
-    times_extended, values_extended, current_time, current_price = fetch_data()
+    times_extended, values_extended, current_time, current_price, consumption_times, consumption_values = fetch_data()
 
     plt.figure(figsize=(8, 6))
     fig, ax = plt.subplots(figsize=(8, 6))  # Adjust the figure size
@@ -93,6 +106,10 @@ def serve_image():
 
     if current_hour_index is not None:
         plt.axvspan(times_extended[current_hour_index], times_extended[current_hour_index] + timedelta(hours=1), color="gray", alpha=0.3, label="Current Hour")
+
+
+    plt.bar(consumption_times, consumption_values, width=0.04, alpha=0.6, label="Consumption (kWh)", color="black")
+
 
     plt.xticks(times_extended, [time.strftime("%H:%M") for time in times_extended], rotation=-90, color="black")
     plt.yticks(color="black")
