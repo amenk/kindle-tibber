@@ -29,6 +29,12 @@ query {
     homes {
       currentSubscription {
         priceInfo {
+         current{
+            total
+            energy
+            tax
+            startsAt
+          }        
           today {
             total
             startsAt
@@ -63,17 +69,21 @@ def fetch_data():
 
     current_time = datetime.now().astimezone(berlin_tz)
 
-    return times_extended, values_extended, current_time
+    current_price = data["data"]["viewer"]["homes"][0]["currentSubscription"]["priceInfo"]["current"]["total"]
+    
+    return times_extended, values_extended, current_time, current_price
 
 # Route to serve the image
 @app.route('/image.png')
 def serve_image():
-    times_extended, values_extended, current_time = fetch_data()
+    times_extended, values_extended, current_time, current_price = fetch_data()
 
     plt.figure(figsize=(8, 6))
     fig, ax = plt.subplots(figsize=(8, 6))  # Adjust the figure size
 
-    plt.step(times_extended, values_extended, where="post", label="Electricity Price", color="black")
+    values_extended_ct = [value * 100 for value in values_extended]
+
+    plt.step(times_extended, values_extended_ct, where="post", label="Electricity Price", color="black")
 
     current_hour_index = None
     for i, time in enumerate(times_extended):
@@ -86,27 +96,35 @@ def serve_image():
 
     plt.xticks(times_extended, [time.strftime("%H:%M") for time in times_extended], rotation=-90, color="black")
     plt.yticks(color="black")
-    ax.set_ylim(0.0, 0.5)
+    ax.set_ylim(0, 50)
+
+    ax.axhline(
+        y=32.74,  # The y-coordinate where the line will be drawn
+        color='gray',  # Color of the line
+        linestyle='--',  # Dashed line style
+        linewidth=1.5,  # Thickness of the line
+        label="32.74 ct/kWh"  # Add a label for the legend
+    )
 
     plt.xlabel("Time", color="black")
-    plt.ylabel("Price (€/kWh)", color="black")
-    plt.title("Tibber Electricity Prices (Step Diagram)", color="black")
+    plt.ylabel("Price (ct/kWh)", color="black")
+    plt.title("Tibber Electricity Prices", color="black")
     plt.grid(axis="x", linestyle="--", alpha=0.7, color="black")
     plt.legend(loc="upper left", frameon=False)
 
-    current_date = current_time.strftime("%Y-%m-%d")
+    current_date = current_time.strftime("%Y.%m.%d %H:%M:%S")
     plt.text(0.95, 0.01, f"Generated on: {current_date}", transform=plt.gca().transAxes, fontsize=10, color='gray', ha='right', va='bottom')
     
-    current_price = values_extended[0]
-
+    current_price_ct = current_price * 100
+    
     plt.text(
        0.5, 0.2,  # Positioning the text (x, y), adjust x and y as necessary
-       f"{current_price:.2f} €/kWh",  # Text to display
+       f"{current_price_ct:.2f} ct/kWh",  # Text to display
        transform=ax.transAxes,  # Use axis fraction (0.0 to 1.0) for positioning
        ha='center',  # Center the text horizontally
        va='bottom',  # Place text below the top of the plot
        fontsize=28,  # Font size
-       color='lightgray',  # Color of the text (light gray)
+       color='black',  # Color of the text (light gray)
        weight='bold'  # Make the font bold for visibility
     )
 
