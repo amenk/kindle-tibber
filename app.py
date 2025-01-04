@@ -45,7 +45,7 @@ query {
           }
         }
       }
-      consumption(resolution: HOURLY, last: 100) {
+      consumption(resolution: HOURLY, last: {last}) {
 	nodes {
 	  from
 	  cost
@@ -57,9 +57,16 @@ query {
 }
 """
 
+query = query.replace("{last}", str(max(6, datetime.now().hour + 1)))
+
+print(query)
+
 # Function to fetch and process the data
 def fetch_data():
     response = requests.post(API_URL, headers=headers, json={"query": query})
+    
+    print(response)
+    
     data = response.json()
 
     prices_today = data["data"]["viewer"]["homes"][0]["currentSubscription"]["priceInfo"]["today"]
