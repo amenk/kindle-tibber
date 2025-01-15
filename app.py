@@ -136,8 +136,8 @@ def serve_image():
     plt.grid(axis="x", linestyle="--", alpha=0.7, color="black")
     plt.legend(loc="upper left", frameon=False)
 
-    current_date = current_time.strftime("%Y.%m.%d %H:%M:%S")
-    plt.text(0.95, 0.01, f"Generated on: {current_date}", transform=plt.gca().transAxes, fontsize=10, color='gray', ha='right', va='bottom')
+    current_date = current_time.strftime("%d.%m.%Y %H:%M:%S")
+    plt.text(0.95, 0.01, f"{current_date}", transform=plt.gca().transAxes, fontsize=16, color='black', ha='right', va='bottom', weight='bold')
     
     current_price_ct = current_price * 100
     
